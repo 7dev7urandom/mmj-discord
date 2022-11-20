@@ -11,8 +11,8 @@ const client = new Client({
 
 let mounted = true;
 async function checkMount() {
-    // console.log("Hello world!");
     if ((await getDevDisks()).length > 0) {
+        console.log(getDevDisks());
         const pingJ = MinecraftServerListPing.ping(4, "localhost", 25565);
         const bedrockPing = ping({ host: "localhost", port: 19132 });
         Promise.all([pingJ, bedrockPing]).then(p => {
@@ -70,7 +70,7 @@ async function getDevDisks() {
     const nums = {};
     devs.forEach(d => {
         if (d.match(/sd[a-z]\d/)) {
-            const num = d.match(/sd([a-z])(\d)/)!;
+            const num = d.match(/sd([a-z])(\d)/);
             nums[num[1]] = (nums[num[1]] ?? 0) + 1;
         }
     });
