@@ -12,7 +12,7 @@ const client = new Client({
 let mounted = true;
 async function checkMount() {
     if ((await getDevDisks()).length > 0) {
-        console.log(getDevDisks());
+        // console.log(getDevDisks());
         const pingJ = MinecraftServerListPing.ping(4, "localhost", 25565);
         const bedrockPing = ping({ host: "localhost", port: 19132 });
         Promise.all([pingJ, bedrockPing]).then(p => {
@@ -24,7 +24,7 @@ async function checkMount() {
                 status: "online"
             });
         }).catch(e => {
-            console.log(e);
+            // console.log(e);
             client.user?.setPresence({
                 activities: [{
                     name: "Server is offline",
