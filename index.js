@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -7,28 +8,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ActivityType, Client } from "discord.js";
-import { token } from "./config.json";
-import { stat, readdir } from "fs/promises";
-import { exec, spawn } from "child_process";
-import { MinecraftServerListPing } from "minecraft-status";
-import { ping } from 'bedrock-protocol';
-const client = new Client({
+Object.defineProperty(exports, "__esModule", { value: true });
+const discord_js_1 = require("discord.js");
+const config_json_1 = require("./config.json");
+const promises_1 = require("fs/promises");
+const child_process_1 = require("child_process");
+const minecraft_status_1 = require("minecraft-status");
+const bedrock_protocol_1 = require("bedrock-protocol");
+const client = new discord_js_1.Client({
     intents: ["Guilds", "GuildMessages"],
 });
 let mounted = true;
 setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
     // console.log("Hello world!");
     try {
-        yield stat('/mnt/test/fileExists');
-        const pingJ = MinecraftServerListPing.ping(4, "localhost", 25565);
-        const bedrockPing = ping({ host: "localhost", port: 19132 });
+        yield (0, promises_1.stat)('/mnt/test/fileExists');
+        const pingJ = minecraft_status_1.MinecraftServerListPing.ping(4, "localhost", 25565);
+        const bedrockPing = (0, bedrock_protocol_1.ping)({ host: "localhost", port: 19132 });
         Promise.all([pingJ, bedrockPing]).then(p => {
             var _a;
             (_a = client.user) === null || _a === void 0 ? void 0 : _a.setPresence({
                 activities: [{
                         name: p[0].players.online + " players on the server",
-                        type: ActivityType.Watching
+                        type: discord_js_1.ActivityType.Watching
                     }],
                 status: "online"
             });
@@ -38,7 +40,7 @@ setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
             (_a = client.user) === null || _a === void 0 ? void 0 : _a.setPresence({
                 activities: [{
                         name: "Server is offline",
-                        type: ActivityType.Watching
+                        type: discord_js_1.ActivityType.Watching
                     }],
                 status: "dnd"
             });
@@ -46,7 +48,7 @@ setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         if (!mounted) {
             mounted = true;
             console.log("RAID was turned on");
-            const devs = (yield readdir('/dev/')).filter(d => d.startsWith('sd'));
+            const devs = (yield (0, promises_1.readdir)('/dev/')).filter(d => d.startsWith('sd'));
             const nums = {};
             devs.forEach(d => {
                 var _a;
@@ -56,11 +58,11 @@ setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
                 }
             });
             const raidObjs = Object.entries(nums).filter(([_, num]) => num === 1).map(([letter, _]) => `/dev/sd${letter}1`);
-            spawn("restartraid", raidObjs).on('exit', code => {
+            (0, child_process_1.spawn)("restartraid", raidObjs).on('exit', code => {
                 console.log(`restartraid exited with code ${code}`);
                 if (code === 0) {
                     console.log("RAID was mounted successfully");
-                    exec("docker start yg-paper");
+                    (0, child_process_1.exec)("docker start yg-paper");
                 }
             });
         }
@@ -72,16 +74,16 @@ setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
                 client.user.setPresence({
                     activities: [{
                             name: "for Micah to fix me",
-                            type: ActivityType.Watching
+                            type: discord_js_1.ActivityType.Watching
                         }],
                     status: "dnd"
                 });
                 (yield client.users.fetch("494009206341369857")).send("RAID was unmounted; stopping server");
-                exec("docker stop yg-paper");
+                (0, child_process_1.exec)("docker stop yg-paper");
             }
             mounted = false;
         }
     }
 }), 1000 * 60);
 client.on('ready', () => console.log("Connected!"));
-client.login(token);
+client.login(config_json_1.token);
