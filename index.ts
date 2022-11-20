@@ -3,6 +3,7 @@ import { token } from "./config.json";
 import { stat, readdir } from "fs/promises";
 import { exec, spawn } from "child_process"
 import { MinecraftServerListPing } from "minecraft-status";
+import { ping } from 'bedrock-protocol';
 
 const client = new Client({
     intents: ["Guilds", "GuildMessages"],
@@ -14,13 +15,26 @@ setInterval(async () => {
     // console.log("Hello world!");
     try {
         await stat('/mnt/test/fileExists')
-        const ping = MinecraftServerListPing.ping();
-        ping.then(p => client.user?.setPresence({
-            activities: [{
-                name: p.players.online + " players on the server",
-                type: ActivityType.Watching
-            }]
-        }));
+        const pingJ = MinecraftServerListPing.ping(4, "localhost", 25565);
+        const bedrockPing = ping({ host: "localhost", port: 19132 });
+        Promise.all([pingJ, bedrockPing]).then(p => {
+            client.user?.setPresence({
+                activities: [{
+                    name: p[0].players.online + " players on the server",
+                    type: ActivityType.Watching
+                }],
+                status: "online"
+            });
+        }).catch(e => {
+            console.log(e);
+            client.user?.setPresence({
+                activities: [{
+                    name: "Server is offline",
+                    type: ActivityType.Watching
+                }],
+                status: "dnd"
+            });
+        });
         if (!mounted) {
             mounted = true;
             console.log("RAID was turned on");
