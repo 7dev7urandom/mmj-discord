@@ -1,6 +1,6 @@
 import { ActivityType, Client } from "discord.js";
 import { token } from "./config.json";
-import { stat, readdir } from "fs/promises";
+import { writeFile, readdir, } from "fs/promises";
 import { exec, spawn } from "child_process"
 import { MinecraftServerListPing } from "minecraft-status";
 import { ping } from 'bedrock-protocol';
@@ -13,11 +13,10 @@ let mounted = true;
 async function checkMount() {
     // console.log("Hello world!");
     try {
-        await stat('/mnt/test/fileExists')
+        await writeFile('/mnt/test/fileExists', '')
         const pingJ = MinecraftServerListPing.ping(4, "localhost", 25565);
         const bedrockPing = ping({ host: "localhost", port: 19132 });
         Promise.all([pingJ, bedrockPing]).then(p => {
-            if (!mounted) return;
             client.user?.setPresence({
                 activities: [{
                     name: p[0].players.online + " players on the server",
@@ -26,7 +25,6 @@ async function checkMount() {
                 status: "online"
             });
         }).catch(e => {
-            if (!mounted) return;
             console.log(e);
             client.user?.setPresence({
                 activities: [{
