@@ -17,6 +17,7 @@ async function checkMount() {
         const pingJ = MinecraftServerListPing.ping(4, "localhost", 25565);
         const bedrockPing = ping({ host: "localhost", port: 19132 });
         Promise.all([pingJ, bedrockPing]).then(p => {
+            if (!mounted) return;
             client.user?.setPresence({
                 activities: [{
                     name: p[0].players.online + " players on the server",
@@ -25,6 +26,7 @@ async function checkMount() {
                 status: "online"
             });
         }).catch(e => {
+            if (!mounted) return;
             console.log(e);
             client.user?.setPresence({
                 activities: [{
@@ -74,7 +76,9 @@ async function checkMount() {
     }
 }
 setInterval(checkMount, 1000 * 60);
-checkMount();
 
-client.on('ready', () => console.log("Connected!"));
+client.on('ready', () => {
+    console.log("Connected!");
+    checkMount();
+});
 client.login(token)
