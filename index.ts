@@ -12,8 +12,7 @@ const client = new Client({
 let mounted = true;
 async function checkMount() {
     // console.log("Hello world!");
-    try {
-        await writeFile('/mnt/test/fileExists', '')
+    if ((await getDevDisks()).length > 0) {
         const pingJ = MinecraftServerListPing.ping(4, "localhost", 25565);
         const bedrockPing = ping({ host: "localhost", port: 19132 });
         Promise.all([pingJ, bedrockPing]).then(p => {
@@ -37,16 +36,7 @@ async function checkMount() {
         if (!mounted) {
             mounted = true;
             console.log("RAID was turned on");
-            const devs = (await readdir('/dev/')).filter(d => d.startsWith('sd'));
-            const nums = {};
-            devs.forEach(d => {
-                if (d.match(/sd[a-z]\d/)) {
-                    const num = d.match(/sd([a-z])(\d)/)!;
-                    nums[num[1]] = (nums[num[1]] ?? 0) + 1;
-                }
-            });
-            const raidObjs = Object.entries(nums).filter(([_, num]) => num === 1).map(([letter, _]) => `/dev/sd${letter}1`);
-            spawn("restartraid", raidObjs).on('exit', code => {
+            spawn("restartraid", await getDevDisks()).on('exit', code => {
                 console.log(`restartraid exited with code ${code}`);
                 if (code === 0) {
                     console.log("RAID was mounted successfully");
@@ -55,7 +45,7 @@ async function checkMount() {
             });
 
         }
-    } catch (e) {
+    } else {
         if (mounted) {
             console.log("Unmounted");
             if (client.isReady()) {
@@ -74,6 +64,19 @@ async function checkMount() {
     }
 }
 setInterval(checkMount, 1000 * 60);
+
+async function getDevDisks() {
+    const devs = (await readdir('/dev/')).filter(d => d.startsWith('sd'));
+    const nums = {};
+    devs.forEach(d => {
+        if (d.match(/sd[a-z]\d/)) {
+            const num = d.match(/sd([a-z])(\d)/)!;
+            nums[num[1]] = (nums[num[1]] ?? 0) + 1;
+        }
+    });
+    const raidObjs = Object.entries(nums).filter(([_, num]) => num === 1).map(([letter, _]) => `/dev/sd${letter}1`);
+    return raidObjs;
+}
 
 client.on('ready', () => {
     console.log("Connected!");
