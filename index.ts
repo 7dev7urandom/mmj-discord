@@ -10,8 +10,7 @@ const client = new Client({
 });
 
 let mounted = true;
-
-setInterval(async () => {
+async function checkMount() {
     // console.log("Hello world!");
     try {
         await stat('/mnt/test/fileExists')
@@ -73,7 +72,9 @@ setInterval(async () => {
             mounted = false;
         }
     }
-}, 1000 * 60);
+}
+setInterval(checkMount, 1000 * 60);
+checkMount();
 
 client.on('ready', () => console.log("Connected!"));
 client.login(token)
